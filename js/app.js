@@ -77,6 +77,7 @@ let isRemoteUpdate = false;
 let saveTimer = null;
 let currentMatchFilter = "all";
 let currentTournamentPanel = "groups";
+let currentFamilyPanel = "bracketPanel";
 
 function defaultState(){
   return { settings:{ appName:"World Cup Bristow Challenge", dataSource:"Demo", apiMode:"demo", bracketsLocked:false, matchPicksLocked:false, scoring:{...DEFAULT_SCORING} }, family: DEFAULT_MEMBERS.map((name, i)=>({ id: slug(name), name, colorIndex:i, active:true })), picks:{ brackets:{}, matches:{} }, tournament: DEMO, updatedAt: Date.now(), version:"0.5" };
@@ -210,13 +211,22 @@ function renderFamily(){
   document.getElementById("family").innerHTML = card("Family Picks", `
     <p class="sub">Choose a family member and make bracket or match-by-match picks. Pending games do not award points.</p>
     <div class="builder-bar"><div><label>Family member</label><select id="pickOwner" onchange="renderFamily()">${members().map(m=>`<option value="${m.id}" ${m.id===owner?"selected":""}>${m.name}</option>`).join("")}</select></div></div>
-    <div class="mode-tabs"><button class="active" onclick="showPickPanel('bracketPanel',this)">Full Bracket</button><button onclick="showPickPanel('matchPanel',this)">Match-by-Match</button></div>
-    <div id="bracketPanel" class="pick-panel">${renderBracket(owner)}</div>
-    <div id="matchPanel" class="pick-panel hide">${renderMatchPicks(owner)}</div>
+    <div class="mode-tabs">
+      <button class="${currentFamilyPanel==='bracketPanel'?'active':''}" onclick="showPickPanel('bracketPanel',this)">Full Bracket</button>
+      <button class="${currentFamilyPanel==='matchPanel'?'active':''}" onclick="showPickPanel('matchPanel',this)">Match-by-Match</button>
+    </div>
+    <div id="bracketPanel" class="pick-panel ${currentFamilyPanel==='bracketPanel'?'':'hide'}">${renderBracket(owner)}</div>
+    <div id="matchPanel" class="pick-panel ${currentFamilyPanel==='matchPanel'?'':'hide'}">${renderMatchPicks(owner)}</div>
   `);
 }
 
-function showPickPanel(id, btn){ document.querySelectorAll(".pick-panel").forEach(p=>p.classList.add("hide")); document.getElementById(id).classList.remove("hide"); btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); }
+function showPickPanel(id, btn){
+  currentFamilyPanel = id;
+  document.querySelectorAll(".pick-panel").forEach(p=>p.classList.add("hide"));
+  document.getElementById(id).classList.remove("hide");
+  btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
 function groupSlotCandidates(slot){
   if(!slot || slot.startsWith("TBD") || slot.startsWith("Winner")) return [];
   const exact = slot.match(/^([12])([A-L])$/);
@@ -318,7 +328,23 @@ function renderMatchPicks(owner){
   if(!upcoming.length) return `<p class="muted">No upcoming demo games.</p>`;
   return `<div class="match-list">${upcoming.map(m=>`<div class="upcoming-pick-card"><div class="day-head"><b>${team(m.home)} vs ${team(m.away)}</b><span>${fmtDate(m.kickoff)} CT</span></div><div class="choice-buttons"><button class="${picks[m.id]===m.home?"selected":""}" ${state.settings.matchPicksLocked ? "disabled" : ""} onclick="saveMatchPick('${owner}','${m.id}','${m.home}')">${team(m.home)}</button><button class="${picks[m.id]==='DRAW'?"selected":""}" ${state.settings.matchPicksLocked ? "disabled" : ""} onclick="saveMatchPick('${owner}','${m.id}','DRAW')">Draw</button><button class="${picks[m.id]===m.away?"selected":""}" ${state.settings.matchPicksLocked ? "disabled" : ""} onclick="saveMatchPick('${owner}','${m.id}','${m.away}')">${team(m.away)}</button></div></div>`).join("")}</div>`;
 }
-function saveMatchPick(owner, matchId, pick){ if(state.settings.matchPicksLocked){ alert("Match-by-match picks are currently locked."); return; } state.picks.matches[owner] = { ...(state.picks.matches[owner]||{}), [matchId]:pick }; scheduleSave(); renderFamily(); renderHome(); }
+function saveMatchPick(owner, matchId, pick){
+  if(state.settings.matchPicksLocked){
+    alert("Match-by-match picks are currently locked.");
+    return;
+  }
+
+  currentFamilyPanel = "matchPanel";
+
+  state.picks.matches[owner] = {
+    ...(state.picks.matches[owner] || {}),
+    [matchId]: pick
+  };
+
+  scheduleSave();
+  renderFamily();
+  renderHome();
+}
 
 function bracketScore(owner){ const b=getBracket(owner); let pts=0,pending=0,correct=0,wrong=0; Object.keys(b).forEach(k=>{ if(k.endsWith("-W")) pending++; }); return {pts,correct,wrong,pending}; }
 function matchScoreBreakdown(owner){ const picks=state.picks.matches[owner]||{}; let pts=0,correct=0,wrong=0,pending=0; Object.entries(picks).forEach(([id,pick])=>{ const m=state.tournament.matches.find(x=>x.id===id); if(!m || m.status!=="final"){ pending++; return; } const actual=winnerCode(m); if(pick===actual){ pts += actual==="DRAW" ? Number(state.settings.scoring.groupDraw) : Number(state.settings.scoring.matchWinner); correct++; } else wrong++; }); return {pts,correct,wrong,pending}; }
