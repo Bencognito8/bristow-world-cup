@@ -1,41 +1,39 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#07111f" />
-<title>World Cup Bristow Challenge</title>
-<link rel="stylesheet" href="css/styles.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#06162d" />
+  <title>World Cup Bristow Challenge</title>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-<div id="app" class="app-shell">
-  <header class="topbar">
-    <div>
-      <div class="eyebrow">2026 Family Pool</div>
-      <h1 id="appTitle">World Cup Bristow Challenge</h1>
-    </div>
-    <div id="connectionBadge" class="badge warn">Connecting…</div>
-  </header>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Family Tournament Pool</p>
+        <h1>World Cup Bristow Challenge</h1>
+      </div>
+      <div id="connectionStatus" class="status-pill">Starting…</div>
+    </header>
 
-  <main>
-    <section id="home" class="view active"></section>
-    <section id="matches" class="view"></section>
-    <section id="tournament" class="view"></section>
-    <section id="family" class="view"></section>
-    <section id="admin" class="view"></section>
-  </main>
+    <main id="view" class="view"></main>
 
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <button class="nav-btn active" data-view="home">🏠<span>Home</span></button>
-    <button class="nav-btn" data-view="matches">⚽<span>Matches</span></button>
-    <button class="nav-btn" data-view="tournament">🏆<span>Tournament</span></button>
-    <button class="nav-btn" data-view="family">👨‍👩‍👧‍👦<span>Family</span></button>
-    <button class="nav-btn" data-view="admin">⚙️<span>Admin</span></button>
-  </nav>
-</div>
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="nav-btn active" data-route="home">🏠<span>Home</span></button>
+      <button class="nav-btn" data-route="matches">⚽<span>Matches</span></button>
+      <button class="nav-btn" data-route="tournament">🏆<span>Tournament</span></button>
+      <button class="nav-btn" data-route="family">👨‍👩‍👧‍👦<span>Family</span></button>
+      <button class="nav-btn" data-route="admin">⚙️<span>Admin</span></button>
+    </nav>
+  </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-<script src="js/app.js"></script>
+  <template id="loadingTemplate">
+    <section class="card"><h2>Loading…</h2><p>Preparing the challenge data.</p></section>
+  </template>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
